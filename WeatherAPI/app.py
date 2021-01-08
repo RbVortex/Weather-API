@@ -23,14 +23,17 @@ wsgi_app = app.wsgi_app
 def indexDisplay(): #declare function
     return render_template('index.html') #Returns index from templates folder
 
-@app.route('/temperature', methods=['POST'])
+@app.route('/temperature', methods=['POST']) # <form method="POST
 def tempDisplay(): #declare function
     cityname = request.form['city']
-    r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+cityname+',' + wAPI.geoKey + '&APPID=' + wAPI.apiKey)
-    json_object = r.json()
-    temp_k = float(json_object['main']['temp'])
-    temp_c = wAPI.ConvertKelvinToCelcius(temp_k)
-    return render_template("temperature.html", temp=temp_c) #Renders temperature page from templates folder
+
+    r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+cityname+',' + wAPI.geoKey + '&APPID=' + wAPI.apiKey) #Submits the API query
+    if r.ok == False : #If unacceptable characters entered, returns to index
+        return render_template("index.html")
+    json_object = r.json() #Stores json into json_object variable
+    temp_k = float(json_object['main']['temp']) #Selects main & temp from json_object and converts to float
+    temp_c = wAPI.ConvertKelvinToCelcius(temp_k) #Converts from kelvin to degrees celcius
+    return render_template("temperature.html", temp=temp_c, city=cityname) #Renders temperature page from templates folder
 
 
 if __name__ == '__main__':

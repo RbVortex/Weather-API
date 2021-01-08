@@ -1,4 +1,18 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request #Import template folder
+import requests #sends requests to URLs
+
+class WeatherAPI : #declares class called WeatherAPI
+    def __init__(self) : #Class constructor function
+        self.apiKey = 'c5cd3f6987ff37a7c216c93d22c2d9cc' #Generated API key
+        self.geoKey = 'uk' #Sets location for API
+
+
+    def ConvertKelvinToCelcius(self, kelvin) : #Declared function
+        return round(kelvin - 273.15, 2) #Algorithm created to display degrees celcius
+
+# object variable
+wAPI = WeatherAPI()
+
 app = Flask(__name__)
 
 # Make the WSGI interface available at the top level so wfastcgi can get it.
@@ -6,9 +20,18 @@ wsgi_app = app.wsgi_app
 
 
 @app.route('/')
-def hello():
+def indexDisplay(): #declare function
+    return render_template('index.html') #Returns index from templates folder
 
-    return render_template("/index.html") #Renders index page from templates folder
+@app.route('/temperature', methods=['POST'])
+def tempDisplay(): #declare function
+    cityname = request.form['city']
+    r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+cityname+',' + wAPI.geoKey + '&APPID=' + wAPI.apiKey)
+    json_object = r.json()
+    temp_k = float(json_object['main']['temp'])
+    temp_c = wAPI.ConvertKelvinToCelcius(temp_k)
+    return render_template("temperature.html", temp=temp_c) #Renders temperature page from templates folder
+
 
 if __name__ == '__main__':
     import os
